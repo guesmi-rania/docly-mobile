@@ -127,7 +127,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 children: [
                   const Text('Informations personnelles', style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: AppTheme.textPrimary)),
                   const SizedBox(height: 16),
-                  _input('Nom complet *', _name, hint: 'Ex: Rania Ben Salem'),
+                  _input('Nom complet *', _name, hint: 'Ex: Rania Guesmi'),
                   _input('Email *', _email, keyboard: TextInputType.emailAddress, hint: 'votre@email.com'),
                   _input('Téléphone *', _phone, keyboard: TextInputType.phone, hint: 'Ex: 55 123 456'),
                   _input('Mot de passe *', _password, secure: true, hint: 'Min. 6 caractères'),

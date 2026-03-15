@@ -27,24 +27,28 @@ class _DoctorDetailScreenState extends State<DoctorDetailScreen> {
     _fetch();
   }
 
-  Future<void> _fetch() async {
-    try {
-      final d = await ApiService.getDoctorById(widget.doctorId);
-      final r = await ApiService.getDoctorReviews(widget.doctorId);
-      if (!mounted) return;
-      setState(() {
-        _doctor = Doctor.fromJson(d);
-        _reviews = (r['reviews'] as List)
-            .map((x) => Review.fromJson(x))
-            .toList();
-        _loading = false;
-      });
-    } catch (e) {
-      debugPrint('Erreur fetch doctor: $e');
-      if (!mounted) return;
-      setState(() => _loading = false);
-    }
+Future<void> _fetch() async {
+  try {
+    debugPrint('🔍 Fetching doctor ID: ${widget.doctorId}');
+    final d = await ApiService.getDoctorById(widget.doctorId);
+    debugPrint('✅ Doctor reçu: ${d['user']}');
+    final r = await ApiService.getDoctorReviews(widget.doctorId);
+    debugPrint('✅ Reviews reçues: ${r['reviews']?.length}');
+    if (!mounted) return;
+    setState(() {
+      _doctor = Doctor.fromJson(d);
+      _reviews = (r['reviews'] as List)
+          .map((x) => Review.fromJson(x))
+          .toList();
+      _loading = false;
+    });
+  } catch (e, stack) {
+    debugPrint('❌ ERREUR: $e');
+    debugPrint('❌ STACK: $stack');
+    if (!mounted) return;
+    setState(() => _loading = false);
   }
+}
 
   // Filtrer uniquement les dates à partir d'aujourd'hui
   List<dynamic> get _futureSlots {

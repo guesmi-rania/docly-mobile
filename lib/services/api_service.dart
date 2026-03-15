@@ -52,10 +52,10 @@ static const String baseUrl = 'https://docly-backend.onrender.com/api';
     return res.data;
   }
 
-  static Future<Map<String, dynamic>> getMySlots() async {
-    final res = await _dio.get('/doctors/my-slots');
-    return res.data;
-  }
+static Future<Map<String, dynamic>> getMySlots() async {
+  final res = await _dio.get('/doctors/my-slots');
+  return res.data;
+}
 
   static Future<void> updateSlots(List<Map<String, dynamic>> slots) async {
     await _dio.put('/doctors/slots', data: {'availableSlots': slots});

@@ -1,7 +1,7 @@
+import 'package:flutter/material.dart';
 import 'api_service.dart';
 import 'storage_service.dart';
 import '../models/user.dart';
-import 'package:flutter/material.dart';
 
 class AuthService extends ChangeNotifier {
   User? _user;
@@ -17,9 +17,15 @@ class AuthService extends ChangeNotifier {
   }
 
   Future<void> _loadUser() async {
-    _user = await StorageService.getUser();
-    _loading = false;
-    notifyListeners();
+    try {
+      _user = await StorageService.getUser();
+    } catch (e) {
+      debugPrint('❌ Erreur loadUser: $e');
+      _user = null;
+    } finally {
+      _loading = false;
+      notifyListeners(); // ← IMPORTANT
+    }
   }
 
   Future<void> login(String email, String password) async {

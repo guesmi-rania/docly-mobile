@@ -106,4 +106,15 @@ static Future<Map<String, dynamic>> getMySlots() async {
     final res = await _dio.get('/reviews/doctor/$doctorId');
     return res.data;
   }
+  // Paiement Konnect
+static Future<Map<String, dynamic>> initiateKonnectPayment({
+  required String appointmentId,
+  required double amount,
+}) async {
+  final res = await _dio.post('/payments/konnect/initiate', data: {
+    'appointmentId': appointmentId,
+    'amount': amount,
+  });
+  return res.data;
+}
 }

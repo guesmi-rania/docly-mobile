@@ -29,21 +29,31 @@ class _DoctorDetailScreenState extends State<DoctorDetailScreen> {
 
 Future<void> _fetch() async {
   try {
-    debugPrint('🔍 Fetching doctor ID: ${widget.doctorId}');
+    debugPrint('🔍 Fetching doctor: ${widget.doctorId}');
     final d = await ApiService.getDoctorById(widget.doctorId);
-    debugPrint('✅ Doctor reçu: ${d['user']}');
-    final r = await ApiService.getDoctorReviews(widget.doctorId);
-    debugPrint('✅ Reviews reçues: ${r['reviews']?.length}');
+    debugPrint('✅ Doctor OK: ${d['user']}');
+
+    // Reviews séparées — si ça échoue, on affiche quand même le médecin
+    List<Review> reviews = [];
+    try {
+      final r = await ApiService.getDoctorReviews(widget.doctorId);
+      reviews = (r['reviews'] as List)
+          .map((x) => Review.fromJson(x))
+          .toList();
+      debugPrint('✅ Reviews OK: ${reviews.length}');
+    } catch (e) {
+      debugPrint('⚠️ Reviews non disponibles: $e');
+      // On continue sans reviews
+    }
+
     if (!mounted) return;
     setState(() {
       _doctor = Doctor.fromJson(d);
-      _reviews = (r['reviews'] as List)
-          .map((x) => Review.fromJson(x))
-          .toList();
+      _reviews = reviews;
       _loading = false;
     });
   } catch (e, stack) {
-    debugPrint('❌ ERREUR: $e');
+    debugPrint('❌ ERREUR doctor: $e');
     debugPrint('❌ STACK: $stack');
     if (!mounted) return;
     setState(() => _loading = false);

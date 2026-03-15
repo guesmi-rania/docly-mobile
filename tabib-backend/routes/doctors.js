@@ -5,7 +5,6 @@ const { getAllDoctors, getDoctorById, updateSlots } = require('../controllers/do
 router.get('/', getAllDoctors);
 router.put('/slots', auth, updateSlots);
 
-// ⚠️ my-slots DOIT être avant /:id sinon Express croit que "my-slots" est un ID
 router.get('/my-slots', auth, async (req, res) => {
   try {
     const Doctor = require('../models/Doctor');

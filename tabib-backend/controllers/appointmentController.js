@@ -18,8 +18,29 @@ exports.createAppointment = async (req, res) => {
 exports.getMyAppointments = async (req, res) => {
   try {
     const appointments = await Appointment.find({ patient: req.user.id })
-      .populate({ path: 'doctor', populate: { path: 'user', select: 'name' } });
-    res.json(appointments);
+      .populate({
+        path: 'doctor',
+        populate: { path: 'user', select: 'name' },
+        select: 'user specialty city price' 
+      })
+      .sort({ date: -1 }); 
+
+    const formatted = appointments.map(a => ({
+      _id: a._id,
+      status: a.status,           
+      date: a.date,
+      time: a.time,
+      notes: a.notes,
+      doctor: {
+        _id: a.doctor?._id,
+        name: a.doctor?.user?.name,
+        specialty: a.doctor?.specialty,
+        city: a.doctor?.city,
+        price: a.doctor?.price,
+      }
+    }));
+
+    res.json(formatted);
   } catch (err) {
     res.status(500).json({ message: err.message });
   }

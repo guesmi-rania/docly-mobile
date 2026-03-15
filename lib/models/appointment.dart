@@ -1,40 +1,38 @@
 class Appointment {
   final String id;
+  final String doctorId;
+  final String doctorName;
+  final String specialty;
+  final String city;
+  final double price;
   final String date;
   final String time;
-  final String status;
-  final String? notes;
-  final Map<String, dynamic>? doctor;
-  final Map<String, dynamic>? patient;
+  final String status; 
 
   Appointment({
     required this.id,
+    required this.doctorId,
+    required this.doctorName,
+    required this.specialty,
+    required this.city,
+    required this.price,
     required this.date,
     required this.time,
     required this.status,
-    this.notes,
-    this.doctor,
-    this.patient,
   });
 
-  String get doctorName {
-    final user = doctor?['user'];
-    if (user is Map) return user['name'] ?? 'Médecin';
-    return 'Médecin';
+  factory Appointment.fromJson(Map<String, dynamic> json) {
+    final doctor = json['doctor'] ?? {};
+    return Appointment(
+      id:         json['_id']?.toString() ?? '',
+      doctorId:   doctor['_id']?.toString() ?? '',
+      doctorName: doctor['name']?.toString() ?? 'Médecin',
+      specialty:  doctor['specialty']?.toString() ?? '',
+      city:       doctor['city']?.toString() ?? '',
+      price:      (doctor['price'] ?? 0).toDouble(),
+      date:       json['date']?.toString() ?? '',
+      time:       json['time']?.toString() ?? '',
+      status:     json['status']?.toString() ?? 'pending', 
+    );
   }
-
-  String get specialty => doctor?['specialty'] ?? '';
-  String get city => doctor?['city'] ?? '';
-  double get price => (doctor?['price'] ?? 0).toDouble();
-  String get doctorId => doctor?['_id'] ?? '';
-
-  factory Appointment.fromJson(Map<String, dynamic> json) => Appointment(
-    id: json['_id'] ?? '',
-    date: json['date'] ?? '',
-    time: json['time'] ?? '',
-    status: json['status'] ?? 'pending',
-    notes: json['notes'],
-    doctor: json['doctor'],
-    patient: json['patient'],
-  );
 }

@@ -21,7 +21,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
   static const String _demoPatientEmail    = 'patient@docly.tn';
   static const String _demoPatientPassword = 'demo1234';
-  static const String _demoDoctorEmail     = 'doctor@docly.tn';
+  static const String _demoDoctorEmail     = 'medecin@docly.tn';
   static const String _demoDoctorPassword  = 'demo1234';
 
   @override
@@ -176,42 +176,32 @@ class _LoginScreenState extends State<LoginScreen> {
                         Row(
                           children: [
                             // Bouton patient démo
-                            Expanded(
-                              child: GestureDetector(
-                                onTap: _loading
-                                    ? null
-                                    : () => _loginDemo(
-                                          _demoPatientEmail,
-                                          _demoPatientPassword,
-                                        ),
-                                child: Container(
-                                  padding: const EdgeInsets.symmetric(
-                                      vertical: 12),
-                                  decoration: BoxDecoration(
-                                    color: AppTheme.primary,
-                                    borderRadius:
-                                        BorderRadius.circular(12),
-                                  ),
-                                  child: const Column(
-                                    children: [
-                                      Text('👤',
-                                          style: TextStyle(
-                                              fontSize: 20)),
-                                      SizedBox(height: 4),
-                                      Text(
-                                        'Patient démo',
-                                        style: TextStyle(
-                                            color: Colors.white,
-                                            fontSize: 12,
-                                            fontWeight:
-                                                FontWeight.w700),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                            ),
-                            const SizedBox(width: 10),
+                           // Bouton patient démo
+Expanded(
+  child: GestureDetector(
+    onTap: _loading ? null : () => _loginDemo(
+          _demoPatientEmail, _demoPatientPassword),
+    child: Container(
+      padding: const EdgeInsets.symmetric(vertical: 12),
+      decoration: BoxDecoration(
+        color: AppTheme.primary,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: const Column(
+        children: [
+          Icon(Icons.person, color: Colors.white, size: 28),
+          SizedBox(height: 4),
+          Text('Patient démo',
+              style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w700)),
+        ],
+      ),
+    ),
+  ),
+),
+const SizedBox(width: 10),
                             // Bouton médecin démo
                             Expanded(
                               child: GestureDetector(

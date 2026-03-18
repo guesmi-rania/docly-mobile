@@ -19,6 +19,11 @@ class _LoginScreenState extends State<LoginScreen> {
   bool _loading = false;
   bool _obscure = true;
 
+  static const String _demoPatientEmail    = 'patient@docly.tn';
+  static const String _demoPatientPassword = 'demo1234';
+  static const String _demoDoctorEmail     = 'doctor@docly.tn';
+  static const String _demoDoctorPassword  = 'demo1234';
+
   @override
   void dispose() {
     _emailController.dispose();
@@ -34,15 +39,11 @@ class _LoginScreenState extends State<LoginScreen> {
     setState(() => _loading = true);
     try {
       final auth = context.read<AuthService>();
-
       await auth.login(
         _emailController.text.trim(),
         _passwordController.text.trim(),
       );
-
       if (!mounted) return;
-
-      // ← Navigation explicite après login réussi
       Navigator.pushAndRemoveUntil(
         context,
         MaterialPageRoute(
@@ -50,12 +51,38 @@ class _LoginScreenState extends State<LoginScreen> {
               ? const DoctorDashboard()
               : const HomeScreen(),
         ),
-        (route) => false, // supprime tout l'historique
+        (route) => false,
       );
-
     } catch (e) {
       if (!mounted) return;
       _showError('Email ou mot de passe incorrect');
+    } finally {
+      if (mounted) setState(() => _loading = false);
+    }
+  }
+
+  Future<void> _loginDemo(String email, String password) async {
+    setState(() {
+      _emailController.text = email;
+      _passwordController.text = password;
+      _loading = true;
+    });
+    try {
+      final auth = context.read<AuthService>();
+      await auth.login(email, password);
+      if (!mounted) return;
+      Navigator.pushAndRemoveUntil(
+        context,
+        MaterialPageRoute(
+          builder: (_) => auth.isDoctor
+              ? const DoctorDashboard()
+              : const HomeScreen(),
+        ),
+        (route) => false,
+      );
+    } catch (e) {
+      if (!mounted) return;
+      _showError('Compte démo indisponible. Vérifiez la connexion.');
     } finally {
       if (mounted) setState(() => _loading = false);
     }
@@ -118,6 +145,118 @@ class _LoginScreenState extends State<LoginScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const SizedBox(height: 16),
+
+                  // Comptes démo
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFe8f0fe),
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(
+                          color: AppTheme.primary.withValues(alpha: 0.3)),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Row(
+                          children: [
+                            Icon(Icons.info_outline,
+                                color: AppTheme.primary, size: 16),
+                            SizedBox(width: 6),
+                            Text(
+                              'Comptes démo disponibles',
+                              style: TextStyle(
+                                  color: AppTheme.primary,
+                                  fontWeight: FontWeight.w700,
+                                  fontSize: 13),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 12),
+                        Row(
+                          children: [
+                            // Bouton patient démo
+                            Expanded(
+                              child: GestureDetector(
+                                onTap: _loading
+                                    ? null
+                                    : () => _loginDemo(
+                                          _demoPatientEmail,
+                                          _demoPatientPassword,
+                                        ),
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(
+                                      vertical: 12),
+                                  decoration: BoxDecoration(
+                                    color: AppTheme.primary,
+                                    borderRadius:
+                                        BorderRadius.circular(12),
+                                  ),
+                                  child: const Column(
+                                    children: [
+                                      Text('👤',
+                                          style: TextStyle(
+                                              fontSize: 20)),
+                                      SizedBox(height: 4),
+                                      Text(
+                                        'Patient démo',
+                                        style: TextStyle(
+                                            color: Colors.white,
+                                            fontSize: 12,
+                                            fontWeight:
+                                                FontWeight.w700),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 10),
+                            // Bouton médecin démo
+                            Expanded(
+                              child: GestureDetector(
+                                onTap: _loading
+                                    ? null
+                                    : () => _loginDemo(
+                                          _demoDoctorEmail,
+                                          _demoDoctorPassword,
+                                        ),
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(
+                                      vertical: 12),
+                                  decoration: BoxDecoration(
+                                    color: AppTheme.success,
+                                    borderRadius:
+                                        BorderRadius.circular(12),
+                                  ),
+                                  child: const Column(
+                                    children: [
+                                      Text('👨‍⚕️',
+                                          style: TextStyle(
+                                              fontSize: 20)),
+                                      SizedBox(height: 4),
+                                      Text(
+                                        'Médecin démo',
+                                        style: TextStyle(
+                                            color: Colors.white,
+                                            fontSize: 12,
+                                            fontWeight:
+                                                FontWeight.w700),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  const SizedBox(height: 24),
+
+                  // Titre
                   const Text(
                     'Connexion',
                     style: TextStyle(
@@ -128,13 +267,11 @@ class _LoginScreenState extends State<LoginScreen> {
                   const SizedBox(height: 24),
 
                   // Email
-                  const Text(
-                    'Email',
-                    style: TextStyle(
-                        fontSize: 13,
-                        color: AppTheme.textSecondary,
-                        fontWeight: FontWeight.w500),
-                  ),
+                  const Text('Email',
+                      style: TextStyle(
+                          fontSize: 13,
+                          color: AppTheme.textSecondary,
+                          fontWeight: FontWeight.w500)),
                   const SizedBox(height: 6),
                   TextField(
                     controller: _emailController,
@@ -148,13 +285,11 @@ class _LoginScreenState extends State<LoginScreen> {
                   const SizedBox(height: 16),
 
                   // Mot de passe
-                  const Text(
-                    'Mot de passe',
-                    style: TextStyle(
-                        fontSize: 13,
-                        color: AppTheme.textSecondary,
-                        fontWeight: FontWeight.w500),
-                  ),
+                  const Text('Mot de passe',
+                      style: TextStyle(
+                          fontSize: 13,
+                          color: AppTheme.textSecondary,
+                          fontWeight: FontWeight.w500)),
                   const SizedBox(height: 6),
                   TextField(
                     controller: _passwordController,
@@ -187,7 +322,8 @@ class _LoginScreenState extends State<LoginScreen> {
                               height: 20,
                               width: 20,
                               child: CircularProgressIndicator(
-                                  color: Colors.white, strokeWidth: 2),
+                                  color: Colors.white,
+                                  strokeWidth: 2),
                             )
                           : const Text('Se connecter'),
                     ),
@@ -205,20 +341,21 @@ class _LoginScreenState extends State<LoginScreen> {
                       child: const Text.rich(
                         TextSpan(
                           text: "Pas encore de compte ? ",
-                          style:
-                              TextStyle(color: AppTheme.textSecondary),
+                          style: TextStyle(
+                              color: AppTheme.textSecondary),
                           children: [
                             TextSpan(
                               text: "S'inscrire",
                               style: TextStyle(
                                   color: AppTheme.primary,
                                   fontWeight: FontWeight.w600),
-                            )
+                            ),
                           ],
                         ),
                       ),
                     ),
                   ),
+                  const SizedBox(height: 30),
                 ],
               ),
             ),

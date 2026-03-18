@@ -28,11 +28,10 @@ class _PrescriptionScreenState extends State<PrescriptionScreen> {
   final _notesController = TextEditingController();
   bool _generating = false;
 
-  // ── Couleurs PDF (pas de const, PdfColor n'est pas const-compatible) ──
   static final _pdfPrimary     = PdfColor.fromHex('#1a73e8');
   static final _pdfDark        = PdfColor.fromHex('#0d47a1');
   static final _pdfWhite       = PdfColor.fromHex('#FFFFFF');
-  static final _pdfWhiteSoft   = PdfColor.fromHex('#B3FFFFFF'); // blanc ~70%
+  static final _pdfWhiteSoft   = PdfColor.fromHex('#B3FFFFFF');
   static final _pdfGrey100     = PdfColor.fromHex('#F5F5F5');
   static final _pdfTextPrimary = PdfColor.fromHex('#1a1a2e');
   static final _pdfTextGrey    = PdfColor.fromHex('#888888');
@@ -45,21 +44,37 @@ class _PrescriptionScreenState extends State<PrescriptionScreen> {
   }
 
   Future<void> _generatePDF() async {
+    if (_medications.every((m) => m.name.isEmpty)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text('Ajoutez au moins un médicament'),
+          backgroundColor: AppTheme.warning,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12)),
+        ),
+      );
+      return;
+    }
+
     setState(() => _generating = true);
+
     try {
-      final pdf  = pw.Document();
+      final pdf = pw.Document();
       final date = DateTime.now();
-      final dateStr = '${date.day}/${date.month}/${date.year}';
+      final dateStr =
+          '${date.day.toString().padLeft(2, '0')}/'
+          '${date.month.toString().padLeft(2, '0')}/'
+          '${date.year}';
 
       pdf.addPage(
         pw.Page(
           pageFormat: PdfPageFormat.a4,
           margin: const pw.EdgeInsets.all(40),
-          build: (context) => pw.Column(
+          build: (ctx) => pw.Column(
             crossAxisAlignment: pw.CrossAxisAlignment.start,
             children: [
-
-              // ── Header ──────────────────────────────────────────────
+              // Header
               pw.Container(
                 padding: const pw.EdgeInsets.all(20),
                 decoration: pw.BoxDecoration(
@@ -71,52 +86,39 @@ class _PrescriptionScreenState extends State<PrescriptionScreen> {
                   borderRadius: pw.BorderRadius.circular(12),
                 ),
                 child: pw.Row(
-                  mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+                  mainAxisAlignment:
+                      pw.MainAxisAlignment.spaceBetween,
                   children: [
                     pw.Column(
-                      crossAxisAlignment: pw.CrossAxisAlignment.start,
+                      crossAxisAlignment:
+                          pw.CrossAxisAlignment.start,
                       children: [
-                        pw.Text(
-                          'DOCLY',
-                          style: pw.TextStyle(
-                            color: _pdfWhite,         // ← plus de PdfColors.white70
-                            fontSize: 24,
-                            fontWeight: pw.FontWeight.bold,
-                          ),
-                        ),
-                        pw.Text(
-                          'Ordonnance Médicale',
-                          style: pw.TextStyle(
-                            color: _pdfWhiteSoft,     // ← remplace white70
-                            fontSize: 13,
-                          ),
-                        ),
+                        pw.Text('DOCLY',
+                            style: pw.TextStyle(
+                                color: _pdfWhite,
+                                fontSize: 24,
+                                fontWeight: pw.FontWeight.bold)),
+                        pw.Text('Ordonnance Médicale',
+                            style: pw.TextStyle(
+                                color: _pdfWhiteSoft,
+                                fontSize: 13)),
                       ],
                     ),
                     pw.Column(
                       crossAxisAlignment: pw.CrossAxisAlignment.end,
                       children: [
-                        pw.Text(
-                          'Dr. ${widget.doctorName}',
-                          style: pw.TextStyle(
-                            color: _pdfWhite,
-                            fontWeight: pw.FontWeight.bold,
-                          ),
-                        ),
-                        pw.Text(
-                          widget.specialty,
-                          style: pw.TextStyle(
-                            color: _pdfWhiteSoft,     // ← remplace white70
-                            fontSize: 12,
-                          ),
-                        ),
-                        pw.Text(
-                          'Date : $dateStr',
-                          style: pw.TextStyle(
-                            color: _pdfWhiteSoft,     // ← remplace white70
-                            fontSize: 12,
-                          ),
-                        ),
+                        pw.Text('Dr. ${widget.doctorName}',
+                            style: pw.TextStyle(
+                                color: _pdfWhite,
+                                fontWeight: pw.FontWeight.bold)),
+                        pw.Text(widget.specialty,
+                            style: pw.TextStyle(
+                                color: _pdfWhiteSoft,
+                                fontSize: 12)),
+                        pw.Text('Date : $dateStr',
+                            style: pw.TextStyle(
+                                color: _pdfWhiteSoft,
+                                fontSize: 12)),
                       ],
                     ),
                   ],
@@ -125,51 +127,40 @@ class _PrescriptionScreenState extends State<PrescriptionScreen> {
 
               pw.SizedBox(height: 20),
 
-              // ── Patient ─────────────────────────────────────────────
+              // Patient
               pw.Container(
                 padding: const pw.EdgeInsets.all(14),
                 decoration: pw.BoxDecoration(
                   color: _pdfGrey100,
                   borderRadius: pw.BorderRadius.circular(8),
                 ),
-                child: pw.Row(
-                  children: [
-                    pw.Text(
-                      'Patient : ',
-                      style: pw.TextStyle(fontWeight: pw.FontWeight.bold),
-                    ),
-                    pw.Text(widget.patientName),
-                  ],
-                ),
+                child: pw.Row(children: [
+                  pw.Text('Patient : ',
+                      style: pw.TextStyle(
+                          fontWeight: pw.FontWeight.bold)),
+                  pw.Text(widget.patientName),
+                ]),
               ),
 
               pw.SizedBox(height: 16),
 
-              // ── Diagnostic ──────────────────────────────────────────
+              // Diagnostic
               if (_diagnosisController.text.isNotEmpty) ...[
-                pw.Text(
-                  'Diagnostic :',
-                  style: pw.TextStyle(
-                    fontWeight: pw.FontWeight.bold,
-                    fontSize: 14,
-                  ),
-                ),
+                pw.Text('Diagnostic :',
+                    style: pw.TextStyle(
+                        fontWeight: pw.FontWeight.bold,
+                        fontSize: 14)),
                 pw.SizedBox(height: 6),
-                pw.Text(
-                  _diagnosisController.text,
-                  style: pw.TextStyle(fontSize: 13, color: _pdfTextPrimary),
-                ),
+                pw.Text(_diagnosisController.text,
+                    style: pw.TextStyle(
+                        fontSize: 13, color: _pdfTextPrimary)),
                 pw.SizedBox(height: 16),
               ],
 
-              // ── Médicaments ─────────────────────────────────────────
-              pw.Text(
-                'Prescriptions :',
-                style: pw.TextStyle(
-                  fontWeight: pw.FontWeight.bold,
-                  fontSize: 14,
-                ),
-              ),
+              // Médicaments
+              pw.Text('Prescriptions :',
+                  style: pw.TextStyle(
+                      fontWeight: pw.FontWeight.bold, fontSize: 14)),
               pw.SizedBox(height: 8),
 
               ..._medications
@@ -182,113 +173,91 @@ class _PrescriptionScreenState extends State<PrescriptionScreen> {
                       margin: const pw.EdgeInsets.only(bottom: 8),
                       padding: const pw.EdgeInsets.all(12),
                       decoration: pw.BoxDecoration(
-                        border: pw.Border.all(color: _pdfPrimary, width: 1),
+                        border: pw.Border.all(
+                            color: _pdfPrimary, width: 1),
                         borderRadius: pw.BorderRadius.circular(8),
                       ),
-                      child: pw.Row(
-                        children: [
-                          // Numéro
-                          pw.Container(
-                            width: 24,
-                            height: 24,
-                            decoration: pw.BoxDecoration(
-                              color: _pdfPrimary,
-                              shape: pw.BoxShape.circle,
-                            ),
-                            child: pw.Center(
-                              child: pw.Text(
-                                '${e.key + 1}',
-                                style: pw.TextStyle(
-                                  color: _pdfWhite,
-                                  fontSize: 12,
-                                ),
-                              ),
-                            ),
+                      child: pw.Row(children: [
+                        pw.Container(
+                          width: 24,
+                          height: 24,
+                          decoration: pw.BoxDecoration(
+                            color: _pdfPrimary,
+                            shape: pw.BoxShape.circle,
                           ),
-                          pw.SizedBox(width: 12),
-                          // Infos médicament
-                          pw.Expanded(
-                            child: pw.Column(
-                              crossAxisAlignment: pw.CrossAxisAlignment.start,
-                              children: [
-                                pw.Text(
-                                  e.value.name,
+                          child: pw.Center(
+                            child: pw.Text('${e.key + 1}',
+                                style: pw.TextStyle(
+                                    color: _pdfWhite,
+                                    fontSize: 12)),
+                          ),
+                        ),
+                        pw.SizedBox(width: 12),
+                        pw.Expanded(
+                          child: pw.Column(
+                            crossAxisAlignment:
+                                pw.CrossAxisAlignment.start,
+                            children: [
+                              pw.Text(e.value.name,
                                   style: pw.TextStyle(
-                                    fontWeight: pw.FontWeight.bold,
-                                  ),
-                                ),
-                                if (e.value.dosage.isNotEmpty)
-                                  pw.Text(
+                                      fontWeight:
+                                          pw.FontWeight.bold)),
+                              if (e.value.dosage.isNotEmpty)
+                                pw.Text(
                                     'Posologie : ${e.value.dosage}',
                                     style: pw.TextStyle(
-                                      fontSize: 12,
-                                      color: _pdfTextGrey,
-                                    ),
-                                  ),
-                                if (e.value.duration.isNotEmpty)
-                                  pw.Text(
+                                        fontSize: 12,
+                                        color: _pdfTextGrey)),
+                              if (e.value.duration.isNotEmpty)
+                                pw.Text(
                                     'Durée : ${e.value.duration}',
                                     style: pw.TextStyle(
-                                      fontSize: 12,
-                                      color: _pdfTextGrey,
-                                    ),
-                                  ),
-                              ],
-                            ),
+                                        fontSize: 12,
+                                        color: _pdfTextGrey)),
+                            ],
                           ),
-                        ],
-                      ),
+                        ),
+                      ]),
                     ),
                   ),
 
-              // ── Notes ───────────────────────────────────────────────
+              // Notes
               if (_notesController.text.isNotEmpty) ...[
                 pw.SizedBox(height: 16),
-                pw.Text(
-                  'Recommandations :',
-                  style: pw.TextStyle(
-                    fontWeight: pw.FontWeight.bold,
-                    fontSize: 14,
-                  ),
-                ),
+                pw.Text('Recommandations :',
+                    style: pw.TextStyle(
+                        fontWeight: pw.FontWeight.bold,
+                        fontSize: 14)),
                 pw.SizedBox(height: 6),
-                pw.Text(
-                  _notesController.text,
-                  style: pw.TextStyle(fontSize: 13, color: _pdfTextPrimary),
-                ),
+                pw.Text(_notesController.text,
+                    style: pw.TextStyle(
+                        fontSize: 13, color: _pdfTextPrimary)),
               ],
 
               pw.Spacer(),
 
-              // ── Signature ───────────────────────────────────────────
+              // Signature
               pw.Row(
                 mainAxisAlignment: pw.MainAxisAlignment.end,
                 children: [
-                  pw.Column(
-                    children: [
-                      pw.Container(
-                        width: 140,
-                        height: 50,
-                        decoration: pw.BoxDecoration(
-                          border: pw.Border(
-                            bottom: pw.BorderSide(color: _pdfPrimary),
-                          ),
-                        ),
+                  pw.Column(children: [
+                    pw.Container(
+                      width: 140,
+                      height: 50,
+                      decoration: pw.BoxDecoration(
+                        border: pw.Border(
+                            bottom: pw.BorderSide(
+                                color: _pdfPrimary)),
                       ),
-                      pw.SizedBox(height: 4),
-                      pw.Text(
-                        'Dr. ${widget.doctorName}',
-                        style: pw.TextStyle(fontWeight: pw.FontWeight.bold),
-                      ),
-                      pw.Text(
-                        widget.specialty,
+                    ),
+                    pw.SizedBox(height: 4),
+                    pw.Text('Dr. ${widget.doctorName}',
                         style: pw.TextStyle(
-                          fontSize: 11,
-                          color: _pdfTextGrey,
-                        ),
-                      ),
-                    ],
-                  ),
+                            fontWeight: pw.FontWeight.bold)),
+                    pw.Text(widget.specialty,
+                        style: pw.TextStyle(
+                            fontSize: 11, color: _pdfTextGrey)),
+                  ]),
                 ],
               ),
             ],
@@ -296,15 +265,19 @@ class _PrescriptionScreenState extends State<PrescriptionScreen> {
         ),
       );
 
-      await Printing.sharePdf(
-        bytes: await pdf.save(),
-        filename: 'ordonnance_${widget.patientName}_$dateStr.pdf',
+      final bytes = await pdf.save();
+      if (!mounted) return;
+
+      await Printing.layoutPdf(
+        onLayout: (_) async => bytes,
+        name: 'ordonnance_${widget.patientName}_$dateStr.pdf',
       );
     } catch (e) {
+      debugPrint('❌ PDF Error: $e');
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Erreur: $e'),
+          content: Text('Erreur PDF: $e'),
           backgroundColor: AppTheme.danger,
           behavior: SnackBarBehavior.floating,
           shape: RoundedRectangleBorder(
@@ -316,16 +289,14 @@ class _PrescriptionScreenState extends State<PrescriptionScreen> {
     }
   }
 
-  // ── BUILD ──────────────────────────────────────────────────────────
   @override
   Widget build(BuildContext context) {
     final colors = AppColors.of(context);
-
     return Scaffold(
       appBar: AppBar(
         title: const Text('Nouvelle ordonnance'),
         flexibleSpace: Container(
-          decoration: BoxDecoration(gradient: AppTheme.gradient),  
+          decoration: BoxDecoration(gradient: AppTheme.gradient),
         ),
         foregroundColor: Colors.white,
         actions: [
@@ -345,7 +316,6 @@ class _PrescriptionScreenState extends State<PrescriptionScreen> {
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
-
           // Patient
           _sectionCard(
             colors: colors,
@@ -353,13 +323,11 @@ class _PrescriptionScreenState extends State<PrescriptionScreen> {
             child: Text(
               widget.patientName,
               style: TextStyle(
-                fontSize: 15,
-                fontWeight: FontWeight.w600,
-                color: colors.textPrimary,
-              ),
+                  fontSize: 15,
+                  fontWeight: FontWeight.w600,
+                  color: colors.textPrimary),
             ),
           ),
-
           const SizedBox(height: 12),
 
           // Diagnostic
@@ -375,7 +343,6 @@ class _PrescriptionScreenState extends State<PrescriptionScreen> {
               maxLines: 2,
             ),
           ),
-
           const SizedBox(height: 12),
 
           // Médicaments
@@ -396,15 +363,14 @@ class _PrescriptionScreenState extends State<PrescriptionScreen> {
                     ),
                 const SizedBox(height: 8),
                 TextButton.icon(
-                  onPressed: () =>
-                      setState(() => _medications.add(MedicationEntry())),
+                  onPressed: () => setState(
+                      () => _medications.add(MedicationEntry())),
                   icon: const Icon(Icons.add),
                   label: const Text('Ajouter un médicament'),
                 ),
               ],
             ),
           ),
-
           const SizedBox(height: 12),
 
           // Notes
@@ -420,14 +386,13 @@ class _PrescriptionScreenState extends State<PrescriptionScreen> {
               maxLines: 3,
             ),
           ),
-
           const SizedBox(height: 24),
 
           // Bouton générer
           SizedBox(
             height: 52,
             child: DecoratedBox(
-              decoration: BoxDecoration(          // ← pas de const ici
+              decoration: BoxDecoration(
                 gradient: AppTheme.gradient,
                 borderRadius: BorderRadius.circular(14),
               ),
@@ -450,7 +415,6 @@ class _PrescriptionScreenState extends State<PrescriptionScreen> {
               ),
             ),
           ),
-
           const SizedBox(height: 40),
         ],
       ),
@@ -541,7 +505,8 @@ class _MedicationRow extends StatelessWidget {
                     border: InputBorder.none,
                     isDense: true,
                   ),
-                  style: const TextStyle(fontWeight: FontWeight.w600),
+                  style:
+                      const TextStyle(fontWeight: FontWeight.w600),
                 ),
               ),
               if (onRemove != null)

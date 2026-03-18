@@ -5,9 +5,12 @@ import '../../theme/app_theme.dart';
 import '../../services/api_service.dart';
 import '../../models/doctor.dart';
 import '../../widgets/doctor_card.dart';
+import '../../screens/auth/login_screen.dart';
 import 'doctor_list_screen.dart';
 import 'doctor_detail_screen.dart';
-import 'appointments_screen.dart';   
+import 'appointments_screen.dart';
+import 'map_screen.dart';
+import 'symptom_checker_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -51,6 +54,17 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
+  // ← Fix déconnexion avec navigation
+  Future<void> _logout() async {
+    await context.read<AuthService>().logout();
+    if (!mounted) return;
+    Navigator.pushAndRemoveUntil(
+      context,
+      MaterialPageRoute(builder: (_) => LoginScreen()),
+      (route) => false,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final user = context.read<AuthService>().user;
@@ -60,7 +74,7 @@ class _HomeScreenState extends State<HomeScreen> {
         children: [
           _buildHome(user?.name ?? ''),
           const DoctorListScreen(),
-          const AppointmentsScreen(),   
+          const AppointmentsScreen(),
         ],
       ),
       bottomNavigationBar: BottomNavigationBar(
@@ -95,6 +109,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget _buildHome(String name) {
     return CustomScrollView(
       slivers: [
+        // ── Header ──────────────────────────────────────────────────
         SliverToBoxAdapter(
           child: Container(
             padding: const EdgeInsets.only(
@@ -119,8 +134,9 @@ class _HomeScreenState extends State<HomeScreen> {
                                 fontWeight: FontWeight.w800)),
                       ],
                     ),
+                    // ← Fix bouton déconnexion
                     GestureDetector(
-                      onTap: () => context.read<AuthService>().logout(),
+                      onTap: _logout,
                       child: Container(
                         padding: const EdgeInsets.symmetric(
                             horizontal: 12, vertical: 6),
@@ -128,14 +144,22 @@ class _HomeScreenState extends State<HomeScreen> {
                           color: Colors.white.withValues(alpha: 0.2),
                           borderRadius: BorderRadius.circular(20),
                         ),
-                        child: const Text('Déco.',
-                            style: TextStyle(
-                                color: Colors.white, fontSize: 12)),
+                        child: const Row(
+                          children: [
+                            Icon(Icons.logout,
+                                color: Colors.white, size: 14),
+                            SizedBox(width: 4),
+                            Text('Déco.',
+                                style: TextStyle(
+                                    color: Colors.white, fontSize: 12)),
+                          ],
+                        ),
                       ),
                     ),
                   ],
                 ),
                 const SizedBox(height: 16),
+                // Barre de recherche
                 GestureDetector(
                   onTap: () => setState(() => _tabIndex = 1),
                   child: Container(
@@ -149,7 +173,8 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                     child: const Row(
                       children: [
-                        Icon(Icons.search, color: Colors.white70, size: 18),
+                        Icon(Icons.search,
+                            color: Colors.white70, size: 18),
                         SizedBox(width: 10),
                         Text('Rechercher un médecin...',
                             style: TextStyle(
@@ -162,12 +187,115 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ),
         ),
+
+        // ── Contenu ─────────────────────────────────────────────────
         SliverToBoxAdapter(
           child: Padding(
             padding: const EdgeInsets.all(20),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+
+                // ── Fonctionnalités rapides ──────────────────────────
+                const Text('Services',
+                    style: TextStyle(
+                        fontSize: 17,
+                        fontWeight: FontWeight.w800,
+                        color: AppTheme.textPrimary)),
+                const SizedBox(height: 14),
+                Row(
+                  children: [
+                    // IA Symptômes
+                    Expanded(
+                      child: GestureDetector(
+                        onTap: () => Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) =>
+                                const SymptomCheckerScreen(),
+                          ),
+                        ),
+                        child: Container(
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            gradient: const LinearGradient(
+                              colors: [
+                                Color(0xFF7b1fa2),
+                                Color(0xFF9c27b0)
+                              ],
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                            ),
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          child: const Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text('🤖',
+                                  style: TextStyle(fontSize: 28)),
+                              SizedBox(height: 8),
+                              Text('IA Symptômes',
+                                  style: TextStyle(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.w800,
+                                      fontSize: 13)),
+                              Text('Trouvez le bon\nspécialiste',
+                                  style: TextStyle(
+                                      color: Colors.white70,
+                                      fontSize: 11)),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    // Carte médecins
+                    Expanded(
+                      child: GestureDetector(
+                        onTap: () => Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const DoctorsMapScreen(),
+                          ),
+                        ),
+                        child: Container(
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            gradient: const LinearGradient(
+                              colors: [
+                                Color(0xFF1565c0),
+                                Color(0xFF1a73e8)
+                              ],
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                            ),
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          child: const Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text('🗺️',
+                                  style: TextStyle(fontSize: 28)),
+                              SizedBox(height: 8),
+                              Text('Carte',
+                                  style: TextStyle(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.w800,
+                                      fontSize: 13)),
+                              Text('Médecins\nproches de vous',
+                                  style: TextStyle(
+                                      color: Colors.white70,
+                                      fontSize: 11)),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 24),
+
+                // ── Spécialités ──────────────────────────────────────
                 const Text('Spécialités',
                     style: TextStyle(
                         fontSize: 17,
@@ -194,12 +322,21 @@ class _HomeScreenState extends State<HomeScreen> {
                           color: Colors.white,
                           borderRadius: BorderRadius.circular(14),
                           border: Border.all(color: AppTheme.border),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black
+                                  .withValues(alpha: 0.04),
+                              blurRadius: 6,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
                         ),
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             Text(s['icon']!,
-                                style: const TextStyle(fontSize: 28)),
+                                style:
+                                    const TextStyle(fontSize: 28)),
                             const SizedBox(height: 6),
                             Text(s['name']!,
                                 style: const TextStyle(
@@ -214,6 +351,8 @@ class _HomeScreenState extends State<HomeScreen> {
                   },
                 ),
                 const SizedBox(height: 24),
+
+                // ── Médecins disponibles ─────────────────────────────
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
@@ -246,7 +385,8 @@ class _HomeScreenState extends State<HomeScreen> {
                     child: Column(
                       children: [
                         const SizedBox(height: 30),
-                        const Text('🏥', style: TextStyle(fontSize: 40)),
+                        const Text('🏥',
+                            style: TextStyle(fontSize: 40)),
                         const SizedBox(height: 10),
                         const Text('Aucun médecin disponible',
                             style: TextStyle(
